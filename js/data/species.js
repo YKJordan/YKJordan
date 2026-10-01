@@ -344,6 +344,18 @@ window.TJP = window.TJP || {};
     learn:{1:['confusion','psychic','aura_sphere','recover'],50:['psystrike','shadow_ball','ice_beam','nasty_plot']},
     art:{ body:'biped', c1:'#d8cfe0', c2:'#9b6fbf', c3:'#9b6fbf', ears:'nub', tail:'thick', x:['tube'] }});
 
+  // National Pokédex numbers (used by tools/fetch-sprites.js and the Pokédex screen).
+  const DEX = { bulbasaur:1, ivysaur:2, venusaur:3, charmander:4, charmeleon:5, charizard:6, squirtle:7, wartortle:8, blastoise:9,
+    caterpie:10, metapod:11, butterfree:12, pidgey:16, pidgeotto:17, pidgeot:18, rattata:19, raticate:20, ekans:23, arbok:24,
+    pikachu:25, raichu:26, clefairy:35, clefable:36, oddish:43, gloom:44, vileplume:45, meowth:52, persian:53, psyduck:54, golduck:55,
+    growlithe:58, arcanine:59, abra:63, kadabra:64, alakazam:65, magnemite:81, magneton:82, gastly:92, haunter:93, gengar:94,
+    koffing:109, weezing:110, magikarp:129, gyarados:130, eevee:133, vaporeon:134, jolteon:135, flareon:136, snorlax:143,
+    dratini:147, dragonair:148, dragonite:149, mewtwo:150, mareep:179, flaaffy:180, ampharos:181, umbreon:197, sneasel:215,
+    houndour:228, houndoom:229, larvitar:246, pupitar:247, tyranitar:248, poochyena:261, mightyena:262, zangoose:335, seviper:336,
+    absol:359, shinx:403, luxio:404, luxray:405, riolu:447, lucario:448, weavile:461, glaceon:471, deerling:585, sawsbuck:586,
+    skiddo:672, gogoat:673 };
+  for (const id in S) S[id].dex = DEX[id];
+
   // Derived data: line root, prevo links, BST.
   for (const id in S) {
     const s = S[id];

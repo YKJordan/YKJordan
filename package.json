@@ -5,7 +5,8 @@
   "description": "Tokyo Jungle-style survival with Pokémon systems, in the browser. Unofficial fan project.",
   "scripts": {
     "start": "python3 -m http.server 8000",
-    "test": "node tests/data.test.js",
+    "test": "node tests/data.test.js && node tests/sprites.test.js",
+    "sprites": "node tools/fetch-sprites.js",
     "smoke": "node tests/smoke.js"
   },
   "license": "MIT"

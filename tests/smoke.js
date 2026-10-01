@@ -39,12 +39,15 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     p.x = w.x - 40; p.y = w.y;
     if (G.map.collides(p.x, p.y, p.radius, p)) { w.x = p.x + 40; w.y = p.y; }
     p.dir = 0; p.facing = 1;
+    // Real fights can be lost; give the player enough HP that the rest of the test runs on a live game.
+    p.hpMult = 6; p.recalc(); p.hp = p.maxHp;
     return { wild: w.name, lvl: w.level };
   });
   for (let i = 0; i < 20; i++) { await kb.press('KeyJ'); await sleep(200); await kb.press('KeyK'); await sleep(200); }
   await page.screenshot({ path: path.join(out, '05-fight.png') });
   const afterFight = await page.evaluate(() => { const G = window.TJP.G; return { kos: G.kos, carcasses: G.carcasses.length, hp: G.player.hp, lvl: G.player.level, modal: !!G.modal }; });
 
+  if (afterFight.hp <= 0 || await page.evaluate(() => window.TJP.G.over)) throw new Error('player died in the fight step; later steps need a live run');
   // 4. Exercise systems: eating, level up + evolution, years and weather, territory, mating.
   const sys = await page.evaluate(async () => {
     const T = window.TJP, G = T.G, res = {};
@@ -70,6 +73,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     G.raiseFamily(mate, nest);
     for (let i = 0; i < 200 && (G.modal || G.pending.length); i++) { G.update(1 / 60); if (G.modal) T.Menus.chooseModal(G.modal.options[0]); }
     res.over = G.over;
+    // The heir hatches next to Shibuya's alpha; keep it alive for the rest of the test.
+    G.player.hpMult = 50; G.player.recalc(); G.player.hp = G.player.maxHp;
     res.generation = G.generation; res.heir = G.player.species + ' Lv' + G.player.level; res.pack = G.allies().length;
     res.creatures = G.creatures.length;
     return res;
@@ -79,7 +84,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // 5. Map, pause tabs, other species and weathers.
   await kb.press('KeyM'); await sleep(200); await page.screenshot({ path: path.join(out, '07-map.png') }); await kb.press('KeyM');
-  await kb.press('Escape'); await sleep(200); await page.screenshot({ path: path.join(out, '08-pause.png') });
+  // Close any reward/level-up popup first (Esc would dismiss it instead of pausing) and keep the heir alive.
+  await page.evaluate(() => { const T = window.TJP, G = T.G;
+    for (let i = 0; i < 50 && (G.modal || G.pending.length); i++) { if (G.modal) T.Menus.chooseModal(G.modal.options[0]); else G.update(1 / 60); }
+    G.player.hpMult = 50; G.player.recalc(); G.player.hp = G.player.maxHp; });
+  await kb.press('Escape');
+  await page.waitForSelector('#pause:not(.hidden)', { timeout: 5000 });
+  await page.screenshot({ path: path.join(out, '08-pause.png') });
   for (const tab of ['types', 'dex', 'help', 'status']) await page.click(`#pause .tabs button[data-tab="${tab}"]`);
   await kb.press('Escape');
   const wx = await page.evaluate(async () => {

@@ -64,6 +64,11 @@ window.TJP = window.TJP || {};
 
   function fight(G, c, dt, t) {
     if (!t || t.dead) { c.ai.state = 'wander'; c.ai.target = null; return; }
+    // Alphas don't chase you out of their territory.
+    if (c.isAlpha && c.ai.home && U.dist(c, c.ai.home) > 720) {
+      c.ai.state = 'wander'; c.ai.target = null; c.ai.noticed = false; c.ai.aware = 0; c.ai.dest = { x: c.ai.home.x, y: c.ai.home.y }; c.ai.t = 6;
+      return;
+    }
     const d = U.dist(c, t);
     const pref = preferredRange(c);
     const aim = U.angle(c, t);
@@ -148,14 +153,19 @@ window.TJP = window.TJP || {};
   AI.reactToPlayer = function (G, c, p) {
     const ai = c.ai;
     const pThreat = p.sp.diet !== 'grazer' || p.level > c.level + 4;
-    if (c.isAlpha) { ai.state = 'fight'; ai.target = p; ai.t = 20; return; }
-    if (c.sp.diet === 'grazer') {
-      if (pThreat || p.level > c.level) { ai.state = 'flee'; ai.target = p; ai.t = 5; }
-      return;
-    }
-    // Predators and omnivores.
-    if (p.level > c.level + 6) { ai.state = 'flee'; ai.target = p; ai.t = 4; }
-    else if (c.sp.diet === 'predator' || p.level <= c.level + 1 || G.mods.frenzy) { ai.state = 'fight'; ai.target = p; ai.t = 12; G.emit('hunted', { by: c }); }
+    const fight = () => { ai.state = 'fight'; ai.target = p; ai.t = 12; G.emit('hunted', { by: c }); };
+    const flee = t => { ai.state = 'flee'; ai.target = p; ai.t = t; };
+    if (c.sp.diet === 'grazer' && !c.isAlpha) { if (pThreat || p.level > c.level) flee(5); return; }
+    if (G.time < G.graceT) return; // you just woke up: nobody starts a fight yet
+    // Alphas defend their own turf only.
+    if (c.isAlpha) { if (!ai.home || U.dist(p, ai.home) < 560) { fight(); ai.t = 20; } return; }
+    if (G.mods.frenzy) return fight();
+    if (p.level > c.level + 6) return flee(4);
+    // Predators hunt anything they can take on.
+    if (c.sp.diet === 'predator') { if (p.level <= c.level + 2) fight(); return; }
+    // Small omnivores scavenge: they only jump the weak and shy away from hunters.
+    if (p.level < c.level - 1 || p.hp < p.maxHp * .35) fight();
+    else if (p.sp.diet !== 'grazer' && Math.random() < .5) flee(3);
   };
 
   // Pack member: follow the player, join fights.

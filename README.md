@@ -2,7 +2,9 @@
 
 A **Tokyo Jungle × Pokémon** mashup that runs in the browser. You get Tokyo Jungle's survival loop: hunger, years, ageing, territory, rank, mating and generations. Underneath it are Pokémon's species, types, abilities, natures, moves, held items, status conditions, weather and evolution.
 
-> Unofficial, non-commercial fan project. Pokémon © Nintendo / Creatures / GAME FREAK. Tokyo Jungle © Sony Interactive Entertainment. **No official art, audio or code is included.** All creature art is drawn procedurally. You can drop in your own sprites (see [`assets/README.md`](assets/README.md)).
+> Unofficial, non-commercial fan project. Pokémon © Nintendo / Creatures / GAME FREAK. Tokyo Jungle © Sony Interactive Entertainment. **No official art, audio or code is included.** All creature art is drawn procedurally.
+
+**Animated sprites (optional, stays on your machine):** `node tools/fetch-sprites.js` downloads animated Pokémon sprites, including shinies, into the git-ignored `assets/sprites/` folder, and the game picks them up on reload. See [`assets/README.md`](assets/README.md).
 
 ## Play
 
@@ -76,8 +78,10 @@ js/game/combat.js     damage formula, abilities, items, status ticks
 js/game/ai.js         stealth detection, hunting, fleeing, pack and mate behaviour
 js/game/game.js       the run: time, weather, hunger, territory, mating, spawning, rendering
 js/ui/                canvas HUD and DOM menus
-assets/sprites/       your own optional sprites (git-ignored)
-tests/                data checks and a headless smoke test
+assets/sprites/       your own optional sprites (git-ignored) and the sprites.js list
+tools/fetch-sprites.js  downloads GIF sprites and turns them into animated sprite strips
+tools/lib/            dependency-free GIF decoder, PNG encoder and sprite-strip builder
+tests/                data checks, sprite pipeline checks and a headless smoke test
 ```
 
 Adding a species is one `sp(...)` line in `js/data/species.js`. Adding a move is one `mv(...)` line in `js/data/moves.js`. Then add the species to a district's `spawns` in `js/data/districts.js`.
@@ -86,6 +90,7 @@ Adding a species is one `sp(...)` line in `js/data/species.js`. Adding a move is
 
 ```bash
 node tests/data.test.js                       # checks the type chart, natures, learnsets, evolutions and spawns
+node tests/sprites.test.js                    # GIF decoder matches Pillow frame-for-frame; sprite strips are well formed
 NODE_PATH=$(npm root -g) node tests/smoke.js  # headless Chromium plays a run (needs Playwright)
 ```
 

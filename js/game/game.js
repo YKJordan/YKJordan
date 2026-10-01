@@ -59,7 +59,9 @@ window.TJP = window.TJP || {};
       this.overview = this.map.overview(2);
 
       // The player's Pokémon.
-      const start = this.map.findOpenNear(20, T.DISTRICT_TILES + 30, 15);
+      // Start in a quiet corner of Shibuya, away from the alpha's home in the middle.
+      const start = this.map.findOpenNear(9, T.DISTRICT_TILES + 54, 15);
+      this.graceT = 15;
       const nature = cfg.nature && cfg.nature !== 'random' ? cfg.nature : U.pick(T.NATURE_NAMES);
       this.player = new T.Creature(cfg.species, cfg.startLevel || 5, {
         faction: 'player', nature, heldItem: cfg.item || 'none',
@@ -203,7 +205,7 @@ window.TJP = window.TJP || {};
     spawnWild(nearPlayer) {
       const p = this.player;
       for (let tries = 0; tries < 12; tries++) {
-        const a = Math.random() * Math.PI * 2, dist = nearPlayer ? U.rand(700, 1050) : U.rand(300, 1000);
+        const a = Math.random() * Math.PI * 2, dist = nearPlayer ? U.rand(700, 1050) : U.rand(480, 1000);
         const x = p.x + Math.cos(a) * dist, y = p.y + Math.sin(a) * dist;
         const tx = Math.floor(x / T.TILE), ty = Math.floor(y / T.TILE);
         const d = T.districtAt(tx, ty); if (!d) continue;

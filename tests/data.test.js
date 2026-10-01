@@ -34,7 +34,9 @@ for (const [id, s] of Object.entries(T.SPECIES)) {
   check(s.art && s.art.body, `${id} has art body`);
   check(T.learnsetUpTo(id, 100).length > 0, `${id} has moves`);
   check(T.SPECIES[s.root], `${id} root`);
+  check(Number.isInteger(s.dex) && s.dex > 0, `${id} has a Pokédex number`);
 }
+check(new Set(Object.values(T.SPECIES).map(s => s.dex)).size === Object.keys(T.SPECIES).length, 'Pokédex numbers are unique');
 for (const id of T.PLAYABLE) check(T.learnsetUpTo(id, 5).length >= 1, `${id} has a move at Lv5`);
 for (const id of T.STARTERS) check(T.PLAYABLE.includes(id), `starter ${id} playable`);
 for (const d of T.DISTRICTS) {

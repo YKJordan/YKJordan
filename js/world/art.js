@@ -1,18 +1,28 @@
 // Creature art. Procedural vector drawings of each species, built from its `art` descriptor.
-// If assets/sprites/<speciesId>.png exists it is used instead. Sprites are not shipped: see assets/README.md.
+// Species listed in assets/sprites/sprites.js use those sprite files instead. Sprites are not shipped: see assets/README.md.
 window.TJP = window.TJP || {};
 (function (T) {
   const U = T.U;
   const sprites = {};
+  // Sprite files: <id>.png and optional <id>-shiny.png. A strip of square frames (width = frames × height)
+  // animates; any other image is drawn as a still. Only species listed in assets/sprites/sprites.js are
+  // requested, so missing files never spam 404s.
   T.Sprites = {
-    // Only species listed in assets/sprites/sprites.js are requested, so missing files never spam 404s.
     load(ids) {
-      const wanted = window.TJP_SPRITES || [];
+      const wanted = window.TJP_SPRITES || [], meta = window.TJP_SPRITE_META || {};
+      const facing = window.TJP_SPRITE_FACING || 'right';
+      const loadImg = (src, done) => { const img = new Image(); img.onload = () => done(img); img.onerror = () => {}; img.src = src; };
       for (const id of ids.filter(i => wanted.includes(i))) {
-        const img = new Image();
-        img.onload = () => { sprites[id] = img; };
-        img.onerror = () => {};
-        img.src = 'assets/sprites/' + id + '.png';
+        const m = meta[id] || {};
+        loadImg('assets/sprites/' + id + '.png', img => {
+          const strip = img.width > img.height && img.width % img.height === 0;
+          const frames = m.frames || (strip ? img.width / img.height : 1);
+          sprites[id] = { img, frames, fps: m.fps || 12, facing: m.facing || facing, shiny: null };
+          if (m.shiny) loadImg('assets/sprites/' + id + '-shiny.png', sh => {
+            sprites[id].shiny = sh;
+            sprites[id].shinyFrames = sh.width > sh.height && sh.width % sh.height === 0 ? sh.width / sh.height : 1;
+          });
+        });
       }
     },
     get: id => sprites[id] || null,
@@ -292,15 +302,21 @@ window.TJP = window.TJP || {};
       // Shadow
       if (!(sp.art.body === 'orb' || sp.art.body === 'ghost')) ell(g, 0, s * .58, s * .55, s * .14, 'rgba(0,0,0,.28)');
       else ell(g, 0, s * .75, s * .4, s * .1, 'rgba(0,0,0,.2)');
-      if (c.facing < 0) g.scale(-1, 1);
+      const spr = T.Sprites.get(c.species);
+      // Built-in art and side-view sprites face right; front-facing sprites are never mirrored.
+      const mirror = spr ? (spr.facing === 'right' ? c.facing < 0 : spr.facing === 'left' ? c.facing > 0 : false) : c.facing < 0;
+      if (mirror) g.scale(-1, 1);
       if (c.flash > 0) g.globalAlpha = .5 + .5 * Math.sin(time * 60);
       if (c.alpha !== undefined) g.globalAlpha *= c.alpha;
-      const img = T.Sprites.get(c.species);
-      if (img) {
-        const h = s * 1.7, w = h * img.width / img.height;
+      if (spr) {
+        const useShiny = c.shiny && spr.shiny, img = useShiny ? spr.shiny : spr.img;
+        const frames = useShiny ? spr.shinyFrames : spr.frames;
+        const fw = img.width / frames, fh = img.height;
+        const frame = frames > 1 ? Math.floor((time + (c.animSeed || 0)) * spr.fps) % frames : 0;
+        const h = s * (frames > 1 ? 2.1 : 1.7), w = h * fw / fh;
         const bob = c.moving ? Math.abs(Math.sin(time * 14)) * s * .06 : 0;
-        if (c.shiny) g.filter = 'hue-rotate(140deg)';
-        g.drawImage(img, -w / 2, s * .6 - h - bob, w, h);
+        if (c.shiny && !spr.shiny) g.filter = 'hue-rotate(140deg)';
+        g.drawImage(img, frame * fw, 0, fw, fh, -w / 2, s * .62 - h - bob, w, h);
         g.filter = 'none';
       } else {
         const P = palette(sp, c.shiny);
