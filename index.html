@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pokémon Jungle: Tokyo</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<section id="title" class="screen">
+  <div class="title-box">
+    <div class="kicker">A Tokyo Jungle × Pokémon fan mashup</div>
+    <h1>POKÉMON JUNGLE<span>TOKYO</span></h1>
+    <p class="tag">Humanity is gone. Pokémon rule the ruins. Eat, claim territory, breed, and see how many years your bloodline survives.</p>
+    <div class="menu">
+      <button id="btn-play" class="primary">Survival</button>
+      <button id="btn-dex">Pokédex</button>
+      <button id="btn-help">How to play</button>
+      <button id="btn-reset" class="ghost">Reset save</button>
+    </div>
+    <p id="title-stats" class="muted"></p>
+    <p class="disclaimer">Unofficial, non-commercial fan project. Pokémon © Nintendo / Creatures / GAME FREAK. Tokyo Jungle © Sony Interactive Entertainment. No official assets are included.</p>
+  </div>
+</section>
+
+<section id="setup" class="screen hidden">
+  <div class="panel wide">
+    <header><h2 id="setup-title"></h2></header>
+    <div id="setup-body"></div>
+    <footer><button id="setup-back"></button><button id="setup-next" class="primary"></button></footer>
+  </div>
+</section>
+
+<section id="dex-screen" class="screen hidden">
+  <div class="panel wide"><header><h2>Pokédex</h2><button data-close>Close</button></header><div id="dex-body" class="scroll"></div></div>
+</section>
+
+<section id="help-screen" class="screen hidden">
+  <div class="panel"><header><h2>How to play</h2><button data-close>Close</button></header><div class="scroll" id="help-body"></div></div>
+</section>
+
+<section id="pause" class="screen hidden">
+  <div class="panel wide">
+    <header><h2>Paused</h2>
+      <div class="tabs"><button data-tab="status">Status</button><button data-tab="types">Type chart</button><button data-tab="dex">Pokédex</button><button data-tab="help">How to play</button></div>
+    </header>
+    <div id="pause-body" class="scroll"></div>
+    <footer><button id="pause-quit" class="ghost">End run</button><button id="pause-resume" class="primary">Resume (Esc)</button></footer>
+  </div>
+</section>
+
+<section id="gameover" class="screen hidden">
+  <div class="panel"><div id="go-body"></div>
+    <footer><button id="go-title">Title</button><button id="go-retry" class="primary">Same setup again</button></footer></div>
+</section>
+
+<div id="modal" class="hidden"><div class="panel"><h2></h2><div class="body"></div><div class="opts"></div></div></div>
+
+<template id="help-template">
+  <h3>The Tokyo Jungle loop</h3>
+  <ul>
+    <li><b>Hunger</b> drains all the time. At zero you start losing HP. Predators eat what they knock out (<kbd>E</kbd> on the drumstick). Grazers eat berries from bushes. Omnivores eat both at 75%.</li>
+    <li><b>Years</b> pass every ~75 seconds. Each year brings new <b>weather</b> and three new <b>challenges</b>. Finish them for vitamins, items and Rare Candies.</li>
+    <li><b>You age.</b> After 12 years your body fails. To keep going, raise a new generation.</li>
+    <li><b>Territory:</b> each district has 4 red markers. Hold <kbd>E</kbd> on all 4 to claim the district and open its <b>nest</b>.</li>
+    <li><b>Rank</b> (Rookie, Average, Prime) comes from calories eaten this generation. Mates appear in your territory; better mates need a higher rank.</li>
+    <li><b>Breeding:</b> lead a mate to a nest. Your offspring hatch as the base form, inherit the better IVs and some vitamins, and may learn an egg move. You play the first; siblings join your pack. If you fall, a pack member carries on.</li>
+    <li><b>Alphas</b> rule each district (♛). Beat them for big rewards and to unlock their line. Late in the run, a legendary appears.</li>
+  </ul>
+  <h3>The Pokémon layer</h3>
+  <ul>
+    <li>Real base stats, natures, IVs/EVs, 18-type chart, STAB, crits, abilities, held items and status conditions, in real time.</li>
+    <li>Pokémon <b>level up and evolve</b>. Eevee's evolution depends on the year's weather: rain → Vaporeon, sun → Flareon, snow → Glaceon, sand or smog → Umbreon, clear → Jolteon.</li>
+    <li><b>Weather:</b> Sun and Rain power up Fire and Water. Sandstorm and Snow chip HP. <b>Toxic Smog</b> (Tokyo Jungle's pollution) poisons and contaminates food.</li>
+    <li><b>Stealth:</b> crouch (<kbd>C</kbd>) in tall grass to vanish. Hitting a Pokémon that hasn't noticed you (no <b>!</b>) is an <b>Ambush</b>: a guaranteed big crit, and a <b>Takedown</b> if it leaves the target low.</li>
+    <li>Flying Pokémon cross rooftops and water. Water types swim. Ghosts pass through walls.</li>
+  </ul>
+  <h3>Controls</h3>
+  <p><kbd>WASD</kbd>/arrows move · <kbd>Shift</kbd> sprint · <kbd>C</kbd> stealth · <kbd>Space</kbd> dodge · <kbd>J</kbd><kbd>K</kbd><kbd>L</kbd><kbd>;</kbd> or <kbd>1</kbd>–<kbd>4</kbd> moves (soft auto-aim) · <kbd>E</kbd> eat / mark / nest / court · <kbd>Q</kbd> call pack back · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</p>
+</template>
+
+<script src="js/core/util.js"></script>
+<script src="js/data/types.js"></script>
+<script src="js/data/natures.js"></script>
+<script src="js/data/moves.js"></script>
+<script src="js/data/abilities.js"></script>
+<script src="js/data/items.js"></script>
+<script src="js/data/species.js"></script>
+<script src="js/data/districts.js"></script>
+<script src="js/data/challenges.js"></script>
+<script src="js/core/input.js"></script>
+<script src="js/core/save.js"></script>
+<script src="js/world/map.js"></script>
+<script src="js/world/art.js"></script>
+<script src="js/game/creature.js"></script>
+<script src="js/game/combat.js"></script>
+<script src="js/game/ai.js"></script>
+<script src="js/game/game.js"></script>
+<script src="js/ui/hud.js"></script>
+<script src="js/ui/menus.js"></script>
+<script src="assets/sprites/sprites.js"></script>
+<script src="js/main.js"></script>
+<script>document.getElementById('help-body').innerHTML = document.getElementById('help-template').innerHTML;</script>
+</body>
+</html>

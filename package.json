@@ -1,0 +1,12 @@
+{
+  "name": "pokemon-jungle-tokyo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tokyo Jungle-style survival with Pokémon systems, in the browser. Unofficial fan project.",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "node tests/data.test.js",
+    "smoke": "node tests/smoke.js"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,6 @@
+assets/sprites/*.png
+assets/sprites/*.gif
+assets/sprites/*.webp
+tests/out/
+node_modules/
+.DS_Store
